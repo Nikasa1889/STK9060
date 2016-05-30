@@ -1,0 +1,145 @@
+\section{Problem 2}
+Given the weakly stationary ARMA(2,1) time series defined by:
+\begin{equation}
+x_t - 0.75x_{t-1} + 0.125x_{t-2} = w_t -0.2w_{t-1} \qquad w_t \sim N(0, \sigma_w^2)
+\end{equation}
+\subsection{Prove the model is causal and invertible}
+The AR polynomial of the model is:
+\begin{equation}
+\Phi(z) = 1-0.75z+0.125z^2
+\end{equation}
+Which has two roots $z_1 = 2$ and $z_2 = 4$ which are all outside the unit circle. Therefore the model is \emph{causal}.
+
+The MA polynomial of the model is:
+\begin{equation}
+\Theta(z) = 1 - 0.2z
+\end{equation}
+Which has one root $z = 5 > 1$. Therefore the model is invertible.
+
+\subsection{Find the $\psi$-weights}
+Since $x_t$ is causal, it can we represented by $x_t = \sum_{j=0}^{\infty} \psi_jw_{t-j}$. 
+
+Let the polynomial of $\psi$-weights be $\Psi(z)$. Then the ARMA(2,1) and its linear process representation must match. In other words, the $\Phi(z)$, $\Theta(z)$ and $\Psi(z)$ must satisfy:
+\begin{equation}
+ \Phi(z)\Psi(z) = \Theta(z)
+\end{equation}
+Which can be expanded into:
+\begin{equation}
+(1-0.75z+0.125z^2)(\psi_0 + \psi_1z+\psi_2z^2...) = 1-0.2z
+\end{equation}
+By matching the coefficients, we can find the difference equation with initial conditions for $\psi$ as follow:
+\begin{align*}
+\psi_0 &= 1  && \text{matching constant}\\
+\psi_1 - 0.75 \psi_0 &= -0.2 && \text{matching z}\\
+\psi_j - 0.75 \psi_{j-1}+0.125\psi_{j-2} &= 0 &&\text{matching }z^j, (j \geq 2)
+\end{align*}
+From the first two equations, we get the initial conditions $\psi_0 = 1$ and $\psi_1 = 0.55$. The difference equation $\psi$-weights given in the last equation can be solved by finding the roots of its characteristic polynomial, which is 
+\begin{equation}
+1-0.75z+0.125z^2 = 0
+\end{equation}
+
+The above quadratic equation has two real distinct roots $z_1 = 2$ and $z_2 = 4$. Therefore, the general solution for $\psi$ is:
+\begin{equation}
+\psi_j = c_12^{-j} + c_2 4^{-j}
+\end{equation}
+We can find $c_1$ and $c_2$ by solving for the initial conditions:
+\begin{equation}
+\begin{split}
+\psi_0 &= 1 = c_1 + c_2 \\
+\psi_1 &= 0.55 = \frac{c_1}{2} + \frac{c_2}{4}
+\end{split}
+\end{equation}
+Solving that, we get $c_1 = 1.2$ and $c_2 = -0.2$. Therefore, the $\psi$-weights are fully described by:
+\begin{equation}\label{eq:psi_weight}
+\psi_j = 1.2 \cdot 2^{-j} - 0.2 \cdot 4^{-j}
+\end{equation}
+
+\subsection{Find the $\gamma(h)$}
+From the ARMA(2,1) equation:
+\begin{equation}
+x_t - 0.75x_{t-1} + 0.125x_{t-2} = w_t -0.2w_{t-1}
+\end{equation}
+By multiplying both sides by $x_{t-h}$ with $h\geq 0$ and take expectation, we get:
+\begin{equation}
+E(x_tx_{t-h}) -0.75E(x_{t-1}x_{t-h})+0.125E(x_{t-2}x_{t-h}) = E(w_t x_{t-h}) - 0.2E(w_{t-1}x_{t-h})
+\end{equation}
+Using the fact that the ARMA(2,1) is causal, or $E(w_tx_s) = 0$ when $t > s$, we can get the difference equation for $\gamma(h)$ and its initial conditions by evaluating the above equation at $h = 0$, $h=1$, $h=2$ and $h \geq 2$ respectively:
+\begin{equation}
+\begin{split}
+(h = 0) \qquad &\gamma(0) - 0.75\gamma(1) + 0.125\gamma(2) = \sigma_w^2 - 0.2(0.75-0.2)\sigma_w^2 = 0.89\sigma_w^2  \\
+(h=1) \qquad &\gamma(1) - 0.75\gamma(0) + 0.125\gamma(1) = -0.2\sigma^2_w\\
+(h=2) \qquad &\gamma(2) - 0.75\gamma(1) + 0.125\gamma(0) = 0 \\ 
+(h\geq 2) \qquad & \gamma(h) - 0.75\gamma(h-1) +0.125\gamma(h-2)=0 
+\end{split}
+\end{equation}
+(Note that we use the property $\gamma(h) = \gamma(-h)$)
+
+Solving the first three equations, we get the initial conditions: $\gamma(0) = 1.414\sigma_w^2$, $\gamma(1) = 0.765\sigma_w^2$ and $\gamma(2) = 0.397\sigma_w^2$. The fourth equation is the difference equation for $\gamma(h)$, which has the following characteristic polynomial:
+\begin{equation}
+1-0.75z+0.125z^2 = 0
+\end{equation}
+This quadratic equation has two real distinct roots $z_1 = 2$ and $z_2 = 4$. Therefore, the general solution for $\gamma(h)$ is $\gamma(h) = c_12^{-h} + c_24^{-h}$ for $h\geq 1$. To find $c_1$ and $c_2$, the general solution must satisfy the initial conditions, which leads to:
+\begin{equation}
+\begin{split}
+\gamma(1) &= 0.765 \sigma_w^2 = \frac{c_1}{2} + \frac{c_2}{4}\\
+\gamma(2) &= 0.397 \sigma_w^2 = \frac{c_1}{4} + \frac{c_2}{16} 
+\end{split}
+\end{equation}
+Solving that we get $c_1 = 1.646 \sigma_w^2$ and $c_2 = -0.232\sigma_w^2$. Replace that to the general solution of $\gamma(h)$ we get:
+
+\begin{equation} \label{eq:gamma_h}
+\gamma(h) = \sigma_w^2(1.646 \cdot 2^{-h} - 0.232 \cdot 4^{-h})
+\end{equation}
+
+\subsection{Find $\gamma(h)$ of a general linear process}
+Given a time series:
+\begin{equation}
+x_t = \sum_{j = -\infty}^{\infty} \psi_j w_{t-j}
+\end{equation}
+By definition, its autocovariance function $\gamma(h)$ is:
+\begin{equation} \label{eq:gamma_linearprocess}
+\begin{split}
+\gamma(h) &= E(x_t x_{t+h}) \\
+&= E(\sum_{j = -\infty}^{\infty} \psi_j w_{t-j} \sum_{k = -\infty}^{\infty} \psi_k w_{t-k+h})\\
+&= E(\sum_{j = -\infty}^{\infty} \sum_{k = -\infty}^{\infty} \psi_j w_{t-j} \psi_k w_{t-k+h})\\
+&= \sum_{j = -\infty}^{\infty} \sum_{k = -\infty}^{\infty}  \psi_j \psi_k E(w_{t-j} w_{t-k+h})
+\end{split}
+\end{equation}
+Since $w_t$ is independent and identical distributed $N(0, \sigma_w^2)$, we have:
+\begin{equation}
+\begin{cases}
+E(w_{t-j}w_{t-k+h}) = 0 &(k \neq j+h ) \\
+E(w_{t-j}w_{t-k+h}) = \sigma_w^2 &( k = j+h)
+\end{cases}
+\end{equation}
+Apply that to (\ref{eq:gamma_linearprocess}) we get:
+\begin{equation}
+\gamma(h) = \sigma_w^2  \sum_{j = -\infty}^{\infty} \psi_j \psi_{j+h}
+\end{equation}
+Which is what we are looking for.
+
+\subsection{Find $\gamma(h)$ from linear process representation}
+The linear process representation of ARMA(2, 1) was derived in (\ref{eq:psi_weight}) as:
+\begin{equation}
+\psi_j = 1.2 \cdot 2^{-j} - 0.2 \cdot 4^{-j}
+\end{equation}
+From this representation, we can easily derive the $\gamma(h)$ function using the formula derived in the previous question:
+
+\begin{equation}
+\begin{split}
+\gamma(h) &= \sigma_w^2  \sum_{j = -\infty}^{\infty} \psi_j \psi_{j+h} \\
+&= \sigma_w^2  \sum_{j = 0}^{\infty} (1.2 \cdot 2^{-j} - 0.2 \cdot 4^{-j})(1.2 \cdot 2^{-(j+h)} - 0.2 \cdot 4^{-(j+h)})\\
+&= \sigma_w^2  \sum_{j = 0}^{\infty}(1.2^2 \cdot 2^{-2j} - 1.2\cdot 0.2 \cdot 2^{-3j})2^{-h} + (0.2^2 \cdot 2^{-4j} - 1.2 \cdot 0.2 \cdot 2^{-3j})4^{-h}
+\end{split}
+\end{equation}
+
+We have that $\sum_{j=0}^{\infty} a^j = \frac{1}{1-a}$ if $a < 1$. Apply that to the above equation, we get:
+
+\begin{equation}
+\begin{split}
+\gamma(h) &= \sigma_w^2 [(\frac{1.2^2}{1-2^{-2}} - \frac{1.2\cdot 0.2}{1-2^{-3}})2^{-h} + (\frac{0.2^2}{1-2^{-4}}-\frac{1.2\cdot 0.2}{1-2^{-3}})4^{-h}]\\
+ &= \sigma_w^2(1.646 \cdot 2^{-h} - 0.232 \cdot 4^{-h})
+\end{split}
+\end{equation}
+
+Which is identical to what we got in (\ref{eq:gamma_h}).

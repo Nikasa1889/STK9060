@@ -1,0 +1,31 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[caption=false,font=footnotesize]{subfig}
+\usepackage{grffile}
+
+\newcommand*\colvec[3][]{
+	\begin{pmatrix}\ifx\relax#1\relax\else#1\\\fi#2\\#3\end{pmatrix}
+}
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it}
+
+%\addtolength{\oddsidemargin}{-.875in}
+%\addtolength{\evensidemargin}{-.875in}
+%\addtolength{\textwidth}{1.75in}
+
+%\addtolength{\topmargin}{-.875in}
+%\addtolength{\textheight}{1.75in}
+
+\title{STK9060 - Time Series \\ Dang Ha The Hien \\ Student number: 573543}
+
+\begin{document}
+	\maketitle
+	\input{Problem_1}
+	\include{Problem_2}
+	\include{Problem_3}
+	\include{Problem_4}
+	\include{Problem_5}
+\end{document}

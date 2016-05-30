@@ -1,0 +1,174 @@
+\section{Problem 3}
+Let $x_1, ..., x_n$ be observations from a stationary time series $\{x_t\}$ with covariance function $\gamma_x(h)$. Its spectral density, discreet Fourier transform, and the periodogram are defined respectively as:
+
+\begin{equation}
+\begin{split}
+f_x(\omega) &= \sum_{h=-\infty}^{\infty} \gamma_x(h) e^{-2\pi i \omega h}\\
+d_f(\omega_j) &= \frac{1}{\sqrt{n}}\sum_{t = 1}^{n} x_t e^{-2\pi i \omega_j t}\\
+I_f(\omega_j) &= |d_f(\omega_j)|^2
+\end{split}
+\end{equation}
+With $\omega_j = j/n, j = 0, ..., n-1$ are Fourier coefficients.
+
+\subsection{Prove that periodogram $I_f(\omega_j)$ is a sample version of spectral density $f_x(\omega)$}
+First we rewrite the DFT of $x_t$ to:
+\begin{equation}
+d_f(\omega_j) = \frac{1}{\sqrt{n}} \sum_{t=1}^{n} (x_t - \bar{x}) e^{-2\pi i \omega_j t} \qquad (j > 0)
+\end{equation}
+With $\bar{x}$ is the mean of $x$. The result is derived by the fact that $\bar{x}\sum_{t = 1}^{n} e^{-2\pi i \frac{j}{n} t} = 0$ when $j > 0$ \footnote{We can prove this easily by using the sum of geometric series}.
+
+By definition, for $j > 0$, the periodogram can be found by:
+\begin{equation}
+\begin{split}
+I_f(\omega_j) &= |d_f(\omega_j)|^2 \\
+&= \frac{1}{n} \sum_{t = 1}^{n} (x_t- \bar{x}) e^{-2\pi i \omega_j t} \sum_{s = 1}^{n} ((x_s - \bar{x})e^{-2\pi i \omega_j s})^* \\
+&= \frac{1}{n} \sum_{t=1}^{n} \sum_{s=1}^{n} (x_t- \bar{x}) (x_s - \bar{x})e^{-2\pi i \omega_j (t-s)}
+\end{split}
+\end{equation}
+Note that conjugate of sum is sum of conjugate. Now by defining $h = t-s$, we can get:
+\begin{equation}
+\begin{split}
+I_f(\omega_j) &= \frac{1}{n} \sum_{t=1}^{n} \sum_{h=t-1}^{t-n} (x_t - \bar{x})(x_{t-h} - \bar{x})e^{-2\pi i \omega_j h}\\
+&= \frac{1}{n} \sum_{h=-(n-1)}^{0}\sum_{t=1}^{n+h}(x_t - \bar{x})(x_{t-h} - \bar{x})e^{-2\pi i \omega_j h} \\
+&+ \frac{1}{n}\sum_{h=1}^{n-1}\sum_{t=h+1}^{n}(x_t - \bar{x})(x_{t-h} - \bar{x})e^{-2\pi i \omega_j h}
+\end{split}
+\end{equation}
+In the last equation, we split $h$ into two cases $h \leq 0$ and $h > 0$, which allows us to change the summing order. Now for the first term, we apply the fact that $h \leq 0$, and for the second term, we change the index to $t' = t - h$, which leads to.
+
+\begin{equation}
+\begin{split}
+I_f(\omega_j) &= \frac{1}{n} \sum_{h=-(n-1)}^{0}\sum_{t=1}^{n-|h|}(x_t - \bar{x})(x_{t+|h|} - \bar{x})e^{-2\pi i \omega_j h} \\
+&+ \frac{1}{n}\sum_{h=1}^{n-1}\sum_{t'=1}^{n-h}(x_{t'+h} - \bar{x})(x_{t'} - \bar{x})e^{-2\pi i \omega_j h}
+\end{split}
+\end{equation}
+Now we can merge two terms together, using the fact that for the second term $h > 0$.
+\begin{equation} \label{eq:periodogram_sample}
+I_f(\omega_j) = \frac{1}{n} \sum_{h=-(n-1)}^{n-1}\sum_{t=1}^{n-|h|}(x_t - \bar{x})(x_{t+|h|} - \bar{x})e^{-2\pi i \omega_j h}
+\end{equation}
+
+By definition, the estimate of the covariance is given by:
+\begin{equation}
+\hat{\gamma}_x(h) = \frac{1}{n}\sum_{t=1}^{n-|h|}(x_t - \bar{x})(x_{t+|h|} - \bar{x})
+\end{equation}
+
+Therefore, the periodogram is equal to:
+\begin{equation}
+\begin{split}
+I_f(\omega_j) &= \sum_{h=-(n-1)}^{n-1}\hat{\gamma}_x(h) e^{-2\pi i \omega_j h} \\
+&= \sum_{|h|<n}\hat{\gamma}_x(h) e^{-2\pi i \omega_j h} \qquad (j > 0)
+\end{split}
+\end{equation}
+Which shows that periodogram is the sample version of the spectral density. This is also what we are looking for.
+
+When $j = 0$, $d_f(0) = \frac{1}{\sqrt{n}}\sum_{t = 1}^{n} x_t$. Therefore:
+
+\begin{equation}
+I_f(0) = (\frac{1}{\sqrt{n}}\sum_{t = 1}^{n} x_t)^2 = n\bar{x}^2
+\end{equation}
+
+\subsection{Find expectation of periodogram}
+Let $\mu$ be the population mean of $x_t$. Without changing anything, we can replace $\bar{x}$ by $\mu$ in the equation (\ref{eq:periodogram_sample})\footnote{In fact, we can replace $\bar{x}$ by any constant}. By taking the expectation on both sides, the equation (\ref{eq:periodogram_sample}) becomes:
+
+\begin{equation}\label{eq:expectation_periodogram}
+\begin{split}
+E[I_f(\omega_j)] &= \frac{1}{n} \sum_{h=-(n-1)}^{n-1}\sum_{t=1}^{n-|h|}E((x_t - \mu)(x_{t+|h|} - \mu))e^{-2\pi i \omega_j h} \\
+&= \frac{1}{n} \sum_{h=-(n-1)}^{n-1}\sum_{t=1}^{n-|h|} \gamma_x(h) e^{-2\pi i \omega_j h}\\
+&= \sum_{|h|<n}(1-\frac{|h|}{n})\gamma_x(h) e^{-2\pi i \omega_j h} \qquad (j > 0)
+\end{split}
+\end{equation}
+Which is what we are looking for.
+
+When $j = 0$, we have 
+\begin{equation} \label{eq:I_0_expectation}
+E[I_f(0)] = E[d_f(0)^2] = E[(\frac{1}{\sqrt{n}}\sum_{t = 1}^{n} x_t)^2] =n(\mu^2+ var(\bar{x}))
+\end{equation}
+
+\subsection{Show a smooth version of periodogram is reasonable}
+First, we try to derive the variance of $I_f(\omega_j)$ when $n \rightarrow \infty$. Using the Appendix C.2 in the book, and the central limit theorem, we know that the distribution of cosine and sine transform of $x_t$ converge to independent normal distributions with zero mean and variances approximately equal to one half of the theoretical spectrum:
+
+\begin{equation}
+\begin{split}
+d_c(\omega_j) &\xrightarrow{d} AN(0, f_x(\omega)/2) \\
+d_s(\omega_j) &\xrightarrow{d} AN(0, f_x(\omega)/2) \\
+\end{split}
+\end{equation}
+Since $I_f(\omega_j) = d_c(\omega_j)^2 + d_s(\omega_j)^2$, which is sum of squares of two independent normal random variables. Therefore, the asymptotic distribution of the periodogram is given by:
+\begin{equation}
+I_f(\omega_j) \xrightarrow{d} \frac{f_x(\omega)}{2} \chi^2_2
+\end{equation}
+Therefore, the asymptotic variance of the periodogram is:
+\begin{equation}
+var(I_f(\omega_j)) \rightarrow 2 f^2_x(\omega)
+\end{equation} 
+
+Now, instead of directly using raw periodogram $I_f(\omega_j)$ to estimate the spectral density, we use the suggested estimator:
+\begin{equation}
+\hat{g}(\omega_j) = \sum_{|h|<n}(1-\frac{|h|}{n})\hat{\gamma}_x(h)e^{-2\pi i \omega_j h}
+\end{equation}
+
+We see that the above estimator follows the following lag window form:
+\begin{equation}
+\tilde{f}(\omega) = \sum_{|h|\leq r}w(\frac{h}{r})\hat{\gamma}_x(h)e^{-2\pi i \omega h}
+\end{equation}
+
+In this case, $r = n$, and the weight function $w(\frac{h}{n}) = w(x) = 1-|x|$.
+
+This weight function satisfies that $w(0) = 1; |w(x)| \leq 1$ and $w(x) = w(-x)$. Therefore, we can apply the asymptotic theory for estimators in the lag window form (with $r = n$)
+
+\begin{equation}
+\begin{split}
+ var(\hat{g}(\omega_j) ) &\rightarrow \frac{n}{n} f_x^2(\omega) \int_{-1}^{1}w^2(x) dx \qquad \omega \neq 0, 1/2 \\
+&\rightarrow  f_x^2(\omega) \int_{-1}^{1}(1-|x|)^2 dx \\
+&\rightarrow \frac{2}{3} f_x^2(\omega) 
+\end{split}
+\end{equation}
+We see that the estimator $\hat{g}(\omega_j)$ has smaller asymptotic variance: $\frac{2}{3} f_x^2(\omega)$, comparing to the raw periodogram estimator $I_f(\omega_j)$, which has asymptotic variance of 2 $f^2_x(\omega_j)$. This makes $\hat{g}(\omega_j)$ a more reasonable estimator, comparing to the raw periodogram.
+
+\subsection{Show that expectation of periodogram converge to spectral density}
+From the expectation of periodogram derived in (\ref{eq:expectation_periodogram}), we have:
+\begin{equation} \label{eq:expectation_periodogram_converge}
+\begin{split}
+E[I_f(\omega_j)] &= \sum_{|h|<n}(1-\frac{|h|}{n})\gamma_x(h) e^{-2\pi i \omega_j h} \\
+&= \sum_{|h|<n}\gamma_x(h)e^{-2\pi i \omega_j h}  - \frac{\sum_{|h|<n} |h|\gamma_x(h)e^{-2\pi i \omega_j h}}{n}  \qquad (j > 0)
+\end{split}
+\end{equation}
+
+When $n \rightarrow \infty$, we now try to prove that if we assume:
+\begin{equation} \label{eq:periodogram_regularity_cond}
+\sum_{h = - \infty}^{\infty} |h||\gamma_x(h)| = \theta < \infty
+\end{equation}
+then the sum $\sum_{h = -\infty}^{h = \infty} |h|\gamma_x(h)e^{-2\pi i \omega_j h}$ is also bounded, which makes the second term in (\ref{eq:expectation_periodogram_converge}) vanishes when $n \rightarrow \infty$.
+
+We have
+\begin{equation}
+|h|\gamma_x(h) \leq |h||\gamma_x(h)| \leq \sum_{h = - \infty}^{\infty} |h||\gamma_x(h)| = \theta \qquad \forall h
+\end{equation}
+Therefore, we have:
+\begin{equation}
+\sum_{h = -\infty}^{h = \infty} |h|\gamma_x(h)e^{-2\pi i \omega_j h} \leq \theta \sum_{h = -\infty}^{h = \infty}e^{-2\pi i \omega_j h}
+\end{equation}
+
+Since $-1/2<\omega_j<1/2$ and $\omega_j \neq 0$, we have: $|e^{2\pi i \omega_j}| < 1$ and $|e^{-2\pi i \omega_j}| < 1$, which enough for us to bound the sum:
+\begin{equation}
+\begin{split}
+\sum_{h = -\infty}^{h = \infty}e^{-2\pi i \omega_j h} &= \sum_{h = 0}^{h = \infty}e^{-2\pi i \omega_j h} + \sum_{h = 1}^{h = \infty}e^{2\pi i \omega_j h} \\
+&= \frac{1}{1-e^{-2\pi i \omega_j}} + \frac{1}{1-e^{2\pi i \omega_j}} - 1 < \infty
+\end{split}
+\end{equation}
+
+Therefore, we have proved that under the condition (\ref{eq:periodogram_regularity_cond}), the sum $\sum_{h = -\infty}^{h = \infty} |h|\gamma_x(h)e^{-2\pi i \omega_j h}$ is bounded. Apply this result to (\ref{eq:expectation_periodogram_converge}) and let $n \rightarrow \infty$, we have:
+\begin{equation}
+\begin{split}
+E[I_f(\omega_j)] &\rightarrow \sum_{h = -\infty}^{\infty} \gamma_x(h)e^{-2\pi i \omega_j h}  - 0 \\
+&\rightarrow f_x(\omega) \qquad \qquad (\omega \neq 0)
+\end{split}
+\end{equation}
+With the assumed regularity condition in (\ref{eq:periodogram_regularity_cond}), which is:
+\begin{equation}
+\sum_{h = - \infty}^{\infty} |h||\gamma_x(h)| = \theta < \infty
+\end{equation}
+
+For the case $\omega = 0$, as shown in (\ref{eq:I_0_expectation}), 
+\begin{equation}
+E[I_f(0)] - n\mu^2 = n\cdot var(\bar{x}) \rightarrow \sum_{h = -\infty}^{h = \infty}\gamma_x(h) = f_x(0)
+\end{equation}

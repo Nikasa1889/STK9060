@@ -1,0 +1,287 @@
+\section{Problem 4}
+The Holt-Winters forecasting and recursive updating scheme are given by:
+\begin{equation}
+\begin{split} \label{eq:HW}
+x^{t-1}_t &= m_{t-1} + b_{t-1}\\
+m_t &= \lambda_0x_t + (1-\lambda_0)(m_{t-1}+b_{t-1})\\
+b_t &= \lambda_1(m_t - m_{t-1}) + (1-\lambda_1)b_{t-1}  \\
+\end{split}
+\end{equation}
+\subsection{Why the updating formula of $b_t$ is reasonable?}
+We see that $x_t$ is forecasted as sum of the current estimate of the local level $m_{t-1}$ and the local slope $b_{t-1}$. The new local level $m_t$ is updated (i.e. estimated) as the weighted average of the prediction $x^{t-1}_t$ and the actual value $x_t$. The new local linear trend $b_t$ is then updated as the weighted average of the new trend (i.e. growth) $m_t - m_{t-1}$ and the last estimated trend $b_{t-1}$. Therefore, the updating formula of $b_t$ in (\ref{eq:HW}) estimates the local trend by smoothing the observed trend exponentially, which is reasonable.
+
+To get the initial values $b_2$ and $m_2$, assume that we have observed $x_1$ and $x_2$, and the innovations (i.e. prediction errors) $\epsilon_0 = \epsilon_1 = 0$, we then have:
+
+\begin{equation}
+\begin{split}
+x_1 &= m_0 + b_0\\
+x_2 &= m_1 + b_1\\
+m_2 &= \lambda_0 x_2 + (1-\lambda_0) (m_1 + b_1) = x_2\\
+m_1 &= \lambda_0 x_1 + (1-\lambda_0) (m_0 + b_0) = x_1\\
+b_1 &= x_2 - m_1 = x_2 - x_1\\
+b_2 &= \lambda_1 (m_2 - m_1) + (1-\lambda_1)b_1 = x_2 - x_1\\
+\end{split}
+\end{equation}
+
+Therefore, reasonable starting values are $m_2 = x_2$ and $b_2 = x_2 - x_1$,  which makes sense since $m_2$ is the local level and $b_2$ is local linear trend at $t = 2$.
+
+\subsection{Rearrange the updating formulas}
+Having $x^{t-1}_t = m_{t-1} + b_{t-1}$, we can rearrange the updating formula for $m_t$ as following:
+\begin{equation}
+\begin{split}
+m_t &= \lambda_0 x_t + (1-\lambda_0)(m_{t-1}+b_{t-1}) \\
+\Leftrightarrow m_t &= \lambda_0 x_t + m_{t-1}+b_{t-1} - \lambda_0(m_{t-1}+b_{t-1}) \\ 
+\Leftrightarrow m_t &= m_{t-1} +  b_{t-1} + \lambda_0(x_t - x^{t-1}_t) \\
+\end{split}
+\end{equation}
+
+This leads to the following updating formula for $b_t$:
+\begin{equation}
+\begin{split}
+b_t &= \lambda_1(m_t - m_{t-1}) + (1-\lambda_1)b_{t-1} \\
+\Leftrightarrow b_t &= \lambda_1(b_{t-1} +\lambda_0(x_t - x^{t-1}_t)) + (1-\lambda_1)b_{t-1}\\
+\Leftrightarrow b_t &= b_{t-1} + \lambda_0\lambda_1 (x_t - x^{t-1}_t)
+\end{split}
+\end{equation}
+
+I now define the innovation series as $e_t = x_t - x^{t-1}_t$, which simplifies the updating formulas and is useful for later questions:
+\begin{equation} \label{eq:update_HW}
+\begin{split}
+e_t &= x_t - x^{t-1}_t\\
+m_t &= m_{t-1} +  b_{t-1} + \lambda_0e_t\\
+b_t &= b_{t-1} + \lambda_0\lambda_1 e_t
+\end{split}
+\end{equation}
+\subsection{Express the local linear trend model on state-space form}
+The local linear trend model is given by:
+\begin{equation} \label{eq:llt}
+\begin{split}
+y_t &= \mu_t + \epsilon_t \\
+\mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+\beta_t &= \beta_{t-1} + \zeta_t
+\end{split}
+\end{equation}
+where $\epsilon_t, \eta_t, \zeta_t$ are independent with $\epsilon_t \sim N(0, 1), \eta_t \sim N(0, \sigma_\eta^2), \zeta_t \sim N(0, \sigma_\zeta^2)$.
+
+We can express the local linear trend model in (\ref{eq:llt}) in the matrix form:
+\begin{equation}
+\begin{split}
+y_t &= \begin{pmatrix}1 & 0\end{pmatrix}\colvec{\mu_t}{\beta_t} + \epsilon_t\\
+\colvec{\mu_t}{\beta_t} &= \begin{pmatrix}1 & 1\\0 & 1\end{pmatrix} \colvec{\mu_{t-1}}{\beta_{t-1}} +  \colvec{\eta_t}{\zeta_t}
+\end{split}
+\end{equation}
+
+Therefore, if we define $x_t = \colvec{\mu_t}{\beta_t}$ as the state vector, we can then express the model by the two following transition and measurement equations:
+\begin{align*}
+y_t &= \begin{pmatrix}1 & 0\end{pmatrix} x_t + \epsilon_t & \epsilon_t &\sim N(0, 1)\\
+x_t &= \begin{pmatrix}1 & 1\\0 & 1\end{pmatrix} x_{t-1} +  \colvec{\eta_t}{\zeta_t} & \colvec{\eta_t}{\zeta_t} &\sim N(0, \begin{pmatrix}\sigma_\eta^2 & 0\\0 & \sigma_\zeta^2\end{pmatrix})
+\end{align*}
+Therefore, the above local linear trend model can be fully described in state-space form using the following parameters:
+\begin{equation} \label{eq:statespace_para}
+\begin{split}
+\Phi &= \begin{pmatrix}1 & 1\\0 & 1\end{pmatrix}\\
+A &=  \begin{pmatrix}1 & 0\end{pmatrix}\\
+Q &= \begin{pmatrix}\sigma_\eta^2 & 0\\0 & \sigma_\zeta^2\end{pmatrix} \\
+R &= 1
+\end{split}
+\end{equation}
+\subsection{Kalman filter}
+With the parameters given in (\ref{eq:statespace_para}), and assume that the starting values of the state is $x_0 \sim N(\colvec{\mu_0}{\beta_0}, P_0^0)$, the Kalman filter for $x_t$ is given as following.
+
+Assume that we have observed data until $t-1$, first we make prediction for the next state: $x^{t-1}_t$, its variance matrix $P^{t-1}_t$, and prediction of the observable data $y^{t-1}_{t}$
+\begin{equation}
+\begin{split}
+x^{t-1}_t &= \Phi x^{t-1}_{t-1}\\
+P^{t-1}_t &= \Phi P^{t-1}_{t-1}\Phi'+Q\\
+y^{t-1}_t &= Ax^{t-1}_t
+\end{split}
+\end{equation}
+Then after observing $y_t$, we calculate the innovation $e_t$ (prediction errors), and use that to update the state vector, using the fact that the innovation has correlation with the state. The optimal updating scheme is given by the following Kalman filter:
+\begin{equation} \label{eq:Kalman_filter}
+\begin{split}
+e_t &= y_t - y^{t-1}_t = y_t - Ax^{t-1}_t \\
+\Sigma_t &= var(e_t) = AP^{t-1}_{t}A'+ R \\
+K_t &= P^{t-1}_tA'\Sigma_t^{-1}\\
+P^t_t &= [I - K_tA]P^{t-1}_t\\
+x^t_t &= x^{t-1}_t + K_te_t\\
+\end{split}
+\end{equation}
+
+We see that the new estimate of the state $x^t_t$ is the combination of its prediction $x^{t-1}_{t}$ and the prediction error $e_t$, under the Kalman gain $K_t$. This is quite similar to the updating scheme of Holt-Winters model that we obtained in (\ref{eq:update_HW}). I will exploit this fact in the later question.
+\subsection{Kalman smoother}
+After observing $y_t$ for $t = 1, ..., n$, we can estimate the state using all these observed data, which is call smoothing. To run the Kalman smoother, we must first run the Kalman filter forward (from $t=1$ to $t=n$), and then run the following Kalman smoother backward (from $t=n-1$ to $t=1$) with the initial value $x^n_n$ and $P^n_n$:
+
+\begin{equation}
+\begin{split}
+x^n_{t-1} &= x^{t-1}_{t-1} + J_{t-1}(x^n_t - x^{t-1}_t) \\
+P^n_{t-1} &= P^{t-1}_{t-1} + J_{t-1}(P^n_t-P^{t-1}_t)J'_{t-1}\\
+J_{t-1} &= P^{t-1}_{t-1}\Phi'[P^{t-1}_t]^{-1}\\
+\end{split}
+\end{equation}
+
+\subsection{Steady state of the Kalman filter}
+I first assume that the regularity conditions are satisfied by our local linear trend model, so that its Kalman filter can reach the steady state after some finite number of time steps. At this steady state, the state error covariance matrix $P^{t-1}_{t}$ must converge to a time invariant matrix, or $P^{t-1}_{t} = P$ 
+
+Following the Kalman filter given in (\ref{eq:Kalman_filter}), we have:
+\begin{equation}
+\begin{split}
+	P^{t+1}_t &= \Phi P^{t-1}_{t-1} \Phi' + Q\\
+\Leftrightarrow P^{t+1}_t &= \Phi [I - K_tA]P^{t-1}_t \Phi' + Q\\
+\Leftrightarrow P^{t+1}_t &= \Phi [I - P^{t-1}_tA'\Sigma_t^{-1}A]P^{t-1}_t \Phi' + Q \\
+\Leftrightarrow P^{t+1}_t &= \Phi [I - P^{t-1}_tA'(AP^{t-1}_{t}A'+ R)^{-1}A]P^{t-1}_t \Phi' + Q
+\end{split}
+\end{equation}
+Using the fact that the $P^{t-1}_t$ matrix has already converged at the steady state, we have $P^{t+1}_t = P^{t-1}_t = P$. Replace that into the above formula, we have:
+\begin{equation}\label{eq:Ricatti}
+\begin{split}
+&P^{t+1}_t = \Phi [I - P^{t-1}_tA'(AP^{t-1}_{t}A'+ R)^{-1}A]P^{t-1}_t \Phi' + Q\\
+\Leftrightarrow &P = \Phi[I - PA'(APA'+R)^{-1}A]P \Phi'+Q \\
+\Leftrightarrow & P - \Phi P \Phi' +\Phi PA'(APA'+R)^{-1}AP \Phi'-Q = 0
+\end{split}
+\end{equation}
+Which is the Ricatti equation.
+
+\subsection{Steady state Kalman filter vs. Holt-Winter updating scheme}
+At the steady state, the Kalman gain also converges to $K_t = K$. Let $K = \colvec{K_1}{K_2}$, the Kalman filter can be written as:
+\begin{equation}
+\begin{split}
+x^t_t &= x^{t-1}_t + Ke_t \\
+\Leftrightarrow x^t_t &= \Phi x^{t-1}_{t-1} + Ke_t\\
+\Leftrightarrow \colvec{\mu_t}{\beta_t} &= \begin{pmatrix}1 & 1\\0 & 1\end{pmatrix} \colvec{\mu_{t-1}}{\beta_{t-1}} + \colvec{K_1 e_t}{K_2 e_t}\\
+\Leftrightarrow \colvec{\mu_t}{\beta_t}& = \colvec{\mu_{t-1}+\beta_{t-1}}{\beta_{t-1}} + \colvec{K_1}{K_2}e_t
+\end{split}
+\end{equation}
+
+Now looking at the Holt-Winters updating scheme derived in (\ref{eq:update_HW}):
+\begin{equation}
+\begin{split}
+m_t &= m_{t-1} +  b_{t-1} + \lambda_0e_t\\
+b_t &= b_{t-1} + \lambda_0\lambda_1 e_t
+\end{split}
+\end{equation}
+
+ We see that from the above Kalman filter at the steady state, if we replace $\mu_t$ by $m_t$ and $\beta_t$ by $b_t$, and set $K_1 = \lambda_0$ and $K_2 = \lambda_0\lambda_1$, we will get the exact Holt-Winters updating formulas.
+
+\subsection{Find P given $\lambda_0$ and $\lambda_1$}
+At the steady state, let $P_t = P = \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix}$ (since $P$ is symmetric). At the steady state, $K_t$ and $\Sigma_t$ will also converge to $K_t = K$ and $\Sigma_t = \Sigma$. From the Kalman filter formulas, we have:
+
+\begin{equation} \label{eq:Kconditions}
+\begin{split}
+\Sigma &= APA' + R = \begin{pmatrix}1 & 0\end{pmatrix} \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix}  \colvec{1}{0} + 1 = p_{11} + 1 \\
+K &= PA'\Sigma^{-1} = \frac{\begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} \colvec{1}{0}}{p_{11}+1} = \frac{\colvec{p_{11}}{p_{12}}}{p_{11}+1}
+\end{split}
+\end{equation}
+Therefore, we have $K_1 = \frac{p_{11}}{p_{11}+1}$ and $K_2 = \frac{p_{12}}{p_{11}+1}$
+
+From the previous question, if we want our Kalman filter converges to the Holt-Winter updating scheme at its steady state, we must have $K_1 = \lambda_0$ and $K_2 = \lambda_0\lambda_1$. This leads to the following conditions on $p_{11}$and $p_{12}$:
+
+\begin{equation}\label{eq:Pconditions}
+\begin{split}
+K_1 &= \frac{p_{11}}{p_{11}+1} = \lambda_0 \\
+K_2 &= \frac{p_{12}}{p_{11}+1} = \lambda_0 \lambda_1 \\
+\end{split}
+\Leftrightarrow 
+\begin{split}
+p_{11} &= \frac{\lambda_0}{1-\lambda_0} \\
+p_{12} &= \frac{\lambda_0\lambda_1}{1-\lambda_0}
+\end{split}
+\end{equation}
+
+\subsection{Relationship between $\sigma_\eta^2$, $\sigma_\zeta^2$ and $\lambda_0$, $\lambda_1$}
+The Ricatti equation derived in (\ref{eq:Ricatti}):
+\begin{equation}
+\begin{split}
+&P - \Phi P \Phi' +\Phi PA'(APA'+R)^{-1}AP \Phi'-Q = 0 
+\end{split}
+\end{equation}
+can be expanded by the following facts:
+\begin{equation}
+\begin{split}
+\Phi P \Phi' &= \begin{pmatrix}1 & 1\\0 & 1\end{pmatrix} \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} \begin{pmatrix}1 & 0\\1 & 1\end{pmatrix} = \begin{pmatrix}p_{11} + 2p_{12}+p_{22}& p_{12}+p_{22}\\p_{12}+p_{22} & p_{22}\end{pmatrix} \\
+\Phi PA' &= \begin{pmatrix}1 & 1\\0 & 1\end{pmatrix} \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} \colvec{1}{0} = \begin{pmatrix}p_{11} +p_{12}\\p_{12}\end{pmatrix} \\
+APA' + R &= \begin{pmatrix}1 & 0\end{pmatrix} \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix}  \colvec{1}{0} + 1 = p_{11} + 1 \\
+AP\Phi' &= \begin{pmatrix}1 & 0\end{pmatrix} \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} \begin{pmatrix}1 & 0\\1 & 1\end{pmatrix} = \begin{pmatrix}p_{11} +p_{12} & p_{12}\end{pmatrix} 
+\end{split}
+\end{equation}
+
+The Ricatti equation becomes:
+\begin{equation}
+\begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} - \begin{pmatrix}p_{11} + 2p_{12}+p_{22}& p_{12}+p_{22}\\p_{12}+p_{22} & p_{22}\end{pmatrix} + \frac{\begin{pmatrix}p_{11} +p_{12}\\p_{12}\end{pmatrix} \begin{pmatrix}p_{11} +p_{12} & p_{12}\end{pmatrix} }{p_{11}+1} = \begin{pmatrix}\sigma_\eta^2 & 0\\0 & \sigma_\zeta^2\end{pmatrix} 
+\end{equation}
+\begin{equation}
+\Leftrightarrow
+- \begin{pmatrix}-2p_{12}-p_{22}& -p_{22}\\-p_{22} & 0\end{pmatrix} + \frac{\begin{pmatrix}(p_{11} +p_{12})^2 & p_{12}(p_{11}+p_{12}) \\ p_{12}(p_{11}+p_{12}) & p_{12}^2\end{pmatrix}}{p_{11}+1} = \begin{pmatrix}\sigma_\eta^2 & 0\\0 & \sigma_\zeta^2\end{pmatrix}
+\end{equation}
+This leads to the following three equations:
+\begin{equation} \label{eq:sigmaconditions}
+\begin{split}
+\sigma_{\eta}^2 &= \frac{(p_{11}+p_{12})^2}{1+p_{11}} - 2p_{11} - p_{22}\\
+0 &= \frac{p_{12}(p_{11}+p_{12})}{1+p_{11}} - p_{22}\\
+\sigma_{\zeta}^2 &= \frac{p^2_{12}}{1+p_{11}}
+\end{split}
+\end{equation}
+
+Replace the $p_{22}$ in the middle equation to the first, we have:
+\begin{equation} \label{eq:sigma_solved}
+\begin{split}
+\sigma_{\eta}^2 &= \frac{p^2_{11}-p_{11}p_{12}-2p_{12}}{1+p_{11}}\\
+\sigma_{\zeta}^2 &= \frac{p^2_{12}}{1+p_{11}}
+\end{split}
+\end{equation}
+Using the conditions of $p_{11}$ and $p_{12}$ derived at (\ref{eq:Pconditions}), we have:
+\begin{equation} \label{eq:sigma_R1}
+\begin{split}
+\sigma_{\eta}^2 &= \frac{\lambda^2_0 + \lambda^2_0\lambda_1 - 2\lambda_0\lambda_1}{1-\lambda_0}\\
+\sigma_{\zeta}^2 &= \frac{\lambda^2_0\lambda^2_1}{1-\lambda_0}
+\end{split}
+\end{equation}
+This is what we are looking for. (The result could be quickly obtained by the fact that $p_{11}+1 = \frac{1}{1-\lambda_0}$ and $\frac{p_{12}}{1+p_{11}} = \lambda_0\lambda_1$).
+
+
+\subsection{What happens when $R = \sigma^2_\epsilon$}
+Instead of setting $R = 1$, we now let it as it is and try to obtain the formulas for  $\sigma_\eta^2$ and $\sigma_\zeta^2$.
+
+From (\ref{eq:Kconditions}), we now have $K_1 = \frac{p_{11}}{p_{11}+R}$ and $K_2 = \frac{p_{12}}{p_{11}+R}$. Letting them equal to $\lambda_0$ and $\lambda_0\lambda_1$ respectively, we get the following conditions for $p_{11}$ and $p_{12}$
+
+\begin{equation} \label{eq:P_R_conditions}
+\begin{split}
+p_{11} &= \frac{R\lambda_0}{1-\lambda_0} \\
+p_{12} &= \frac{R\lambda_0\lambda_1}{1-\lambda_0}
+\end{split}
+\end{equation}
+
+From Ricatti formula, we see that the only affected term is $APA'+R$ which become $p_{11}+R$ instead of $p_{11}+1$. Updating the equation (\ref{eq:sigmaconditions}) accordingly and following the similar procedure, we now have:
+
+\begin{equation} \label{eq:P_R_sigma}
+\begin{split}
+\sigma_{\eta}^2 &= \frac{p^2_{11}-p_{11}p_{12}-2Rp_{12}}{R+p_{11}}\\
+\sigma_{\zeta}^2 &= \frac{p^2_{12}}{R+p_{11}}
+\end{split}
+\end{equation}
+
+Deviding both side by $R$, we obtain: 
+
+\begin{equation}
+\begin{split}
+\frac{\sigma_{\eta}^2}{R} &= \frac{(\frac{p_{11}}{R})^2-\frac{p_{11}}{R}\frac{p_{12}}{R}-2\frac{p_{12}}{R}}{1+\frac{p_{11}}{R}}\\
+\frac{\sigma_{\zeta}^2}{R} &= \frac{(\frac{p_{12}}{R})^2}{1+\frac{p_{11}}{R}}
+\end{split}
+\end{equation}
+
+Which is very similar to (\ref{eq:sigma_solved}). Since we have $\frac{p_{11}}{R}$ and $\frac{p_{12}}{R}$ equal to $p_{11}$ and $p_{12}$ respectively when $R = 1$, we then get the same result as in (\ref{eq:sigma_R1}) for the right hand side of the above formula. Replacing $R = \sigma^2_\epsilon$, we get:
+
+\begin{equation} \label{eq:sigma_R}
+\begin{split}
+\frac{\sigma_{\eta}^2}{\sigma^2_\epsilon} &= \frac{\lambda^2_0 + \lambda^2_0\lambda_1 - 2\lambda_0\lambda_1}{1-\lambda_0}\\
+\frac{\sigma_{\zeta}^2}{\sigma^2_\epsilon} &= \frac{\lambda^2_0\lambda^2_1}{1-\lambda_0}
+\end{split}
+\end{equation}
+Which is what we are looking for.
+%\Leftrightarrow &\begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} - \begin{pmatrix}1 & 1\\0 & 1\end{pmatrix} \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix}
+
+%\colvec{1}{0} (p_{11}+1)^{-1}\begin{pmatrix}1 & 0\end{pmatrix} \begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} \begin{pmatrix}1 & 0\\1 & 1\end{pmatrix} - Q &= 0
+
+%\begin{pmatrix}p_{11} & p_{12}\\p_{12} & p_{22}\end{pmatrix} %P
+%\begin{pmatrix}1 & 1\\0 & 1\end{pmatrix} %phi
+%\colvec{1}{0}%A'
+%\begin{pmatrix}\sigma_\eta^2 & 0\\0 & \sigma_\zeta^2\end{pmatrix} %Q
